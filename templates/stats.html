@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Thống kê vi phạm - Hệ thống giám sát đội mũ bảo hiểm{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    #chartContainer {
+        max-width: 700px;
+        margin: 0 auto 40px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Thống kê số lần vi phạm đội mũ bảo hiểm</h2>
+    <div id="chartContainer">
+        <canvas id="violationChart"></canvas>
+    </div>
+
+    <h3>Danh sách vi phạm gần đây</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Thời gian</th>
+                <th>Ảnh vi phạm</th>
+                <th>Địa điểm</th>
+                <th>Ghi chú</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for v in violations %}
+            <tr>
+                <td>{{ v.timestamp }}</td>
+                <td>
+                    <a href="{{ v.image_url }}" target="_blank">
+                        <img src="{{ v.image_url }}" alt="Ảnh vi phạm" style="width:80px; border-radius:5px;" />
+                    </a>
+                </td>
+                <td>{{ v.location or 'Chưa cập nhật' }}</td>
+                <td>{{ v.note or '—' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4">Chưa có dữ liệu vi phạm</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <br />
+    <a href="{{ url_for('index') }}" class="button-link"><i class="fas fa-arrow-left"></i> Quay lại Trang chủ</a>
+</div>
+
+<script>
+    const ctx = document.getElementById('violationChart').getContext('2d');
+    const chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ chart_labels | safe }},
+            datasets: [{
+                label: 'Số lần vi phạm',
+                data: {{ chart_data | safe }},
+                backgroundColor: '#004080'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+</script>
+{% endblock %}

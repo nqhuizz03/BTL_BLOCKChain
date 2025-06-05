@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Trang Chủ - Hệ thống giám sát đội mũ bảo hiểm{% endblock %}
+
+{% block content %}
+  <h1>Upload Ảnh hoặc Video để nhận diện đội mũ bảo hiểm</h1>
+
+  <form id="uploadForm" enctype="multipart/form-data">
+    <input type="file" name="file" id="fileInput" accept="image/*,video/*" required />
+    <button type="submit">Upload và Xử lý</button>
+  </form>
+
+  <div class="result" id="result"></div>
+
+  <script>
+    const form = document.getElementById('uploadForm');
+    const resultDiv = document.getElementById('result');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      resultDiv.innerHTML = '<p>Đang xử lý...</p>';
+
+      const formData = new FormData(form);
+      try {
+        const res = await fetch('/upload', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.message || 'Lỗi khi upload file');
+        }
+
+        const data = await res.json();
+        const { output_filename, violation, tx_hash } = data;
+
+        let content = '';
+
+        if (output_filename.endsWith('.mp4')) {
+          content += `<video controls width="480" src="/video/${output_filename}"></video>`;
+        } else {
+          content += `<img src="/image/${output_filename}" alt="Kết quả" style="max-width:480px; height:auto;" />`;
+        }
+
+        content += `<p>${violation ? '<strong style="color:red;">Phát hiện vi phạm không đội mũ!</strong>' : 'Không phát hiện vi phạm.'}</p>`;
+
+        if (tx_hash) {
+          content += `<p>Giao dịch Blockchain đã được gửi: 
+            <a href="https://etherscan.io/tx/${tx_hash}" target="_blank" rel="noopener noreferrer" style="word-break:break-all;">
+              ${tx_hash}
+            </a>
+          </p>`;
+        } else {
+          content += `<p><em>Không có giao dịch blockchain (tx_hash trống hoặc chưa gửi).</em></p>`;
+        }
+
+        resultDiv.innerHTML = content;
+      } catch (error) {
+        resultDiv.innerHTML = `<p style="color:red;">Lỗi: ${error.message}</p>`;
+      }
+    });
+  </script>
+{% endblock %}

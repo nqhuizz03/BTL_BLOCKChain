@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Phát trực tiếp - Hệ thống giám sát đội mũ bảo hiểm{% endblock %}
+
+{% block content %}
+<h1>Live Stream giám sát đội mũ bảo hiểm</h1>
+
+<!-- Phần hiển thị livestream video -->
+<img src="{{ url_for('video_feed') }}" width="640" height="480" alt="Live Stream Camera" />
+
+<h2>Thống kê thời gian thực</h2>
+<div id="stats">
+  <p>Đang tải dữ liệu...</p>
+</div>
+
+<script>
+  const evtSource = new EventSource("/stats_stream");
+  const statsDiv = document.getElementById('stats');
+
+  evtSource.onmessage = function(event) {
+    const data = JSON.parse(event.data);
+    let html = `<p>Thời gian: ${data.time}</p>`;
+    html += `<p>Đội mũ: ${data.with_helmet}</p>`;
+    html += `<p>Không đội mũ: ${data.no_helmet}</p>`;
+
+    html += `<p>Danh sách vi phạm gần đây:</p>`;
+    if (data.violation_list && data.violation_list.length > 0) {
+      html += `<ul>`;
+      data.violation_list.forEach(v => {
+        html += `<li>${v}</li>`;
+      });
+      html += `</ul>`;
+    } else {
+      html += `<p>Không có vi phạm gần đây.</p>`;
+    }
+
+    statsDiv.innerHTML = html;
+  };
+
+  evtSource.onerror = function() {
+    statsDiv.innerHTML = '<p>Lỗi kết nối thống kê thời gian thực.</p>';
+    evtSource.close();
+  }
+</script>
+{% endblock %}

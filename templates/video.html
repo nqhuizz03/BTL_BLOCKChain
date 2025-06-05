@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Video kết quả - Hệ thống giám sát đội mũ bảo hiểm{% endblock %}
+
+{% block content %}
+<div class="card video-container">
+    <h2>Video kết quả xử lý</h2>
+    <video controls>
+        <source src="{{ url_for('serve_video', filename=filename) }}" type="video/mp4" />
+        Trình duyệt không hỗ trợ video.
+    </video>
+    <br /><br />
+    <a href="{{ url_for('index') }}" class="button-link"><i class="fas fa-arrow-left"></i> Quay lại Trang chủ</a>
+</div>
+{% endblock %}
